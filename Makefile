@@ -8,6 +8,9 @@ CFLAGS = -g -Wall -O0 -std=c++11 -march=native -masm=intel
 default: $(TARGET)
 all: default
 
+asm:
+	$(CC) -Wa,-adhln  -std=c++11 -g -march=native -masm=intel sort.c > sort_asm.s
+
 OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
 HEADERS = $(wildcard *.h)
 

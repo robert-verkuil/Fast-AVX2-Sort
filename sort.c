@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <vector>
 
+#include <cstdlib>
+
 #include "immintrin.h"
 
 // Timing code
@@ -32,7 +34,17 @@ constexpr bool cache_flush = false;
 
 // Intrinics
 // Currently designed sort ints
-void sort_ints_intrinsics(__m256i packed_input) {
+void sort_ints_intrinsics(const int *input_array, int *output_array) {
+  __m256i input = _mm256_load_si256(input_array);
+  __m256i result = _mm256_setzero_si256(); // = _mm256_load_ps(output_array);
+  for (int i = 0; i < 8; ++i) {
+    __m256i b1 = (__m256i)_mm256_broadcast_ss((float *)&input_array[0]);
+    __m256i cmp = _mm256_cmpgt_epi32(input, b1, 1); // _CMP_LT_OS
+    __m256i icmp = _mm256_srli_epi32(cmp, 31);
+    result = _mm256_add_epi32(result, icmp);
+  }
+  __m256i output = _mm256_permutevar8x32_epi32(input, result);
+  _mm256_store_si256(output_array, output);
   return;
 }
 
@@ -45,7 +57,7 @@ _xmm256_and_si256(__m256i s1, __m256i s2)
 }
 
 // Inline asm
-void sort_ints_asm(int *inputs) {
+void sort_ints_asm(float *inputs) {
   __asm__ (
     // "vmovdqa64   (%1), %%ymm0\n"
     // "vpaddd      (%2), %%ymm0, %%ymm0\n"
@@ -63,16 +75,24 @@ void sort_ints_asm(int *inputs) {
 }
 
 int main(int argc, char *argv[]) {
-  if (cache_flush) {
-    flusher.resize(64 * 1024 * 1024);
+  // if (cache_flush) {
+  //   flusher.resize(64 * 1024 * 1024);
+  // }
+  auto inputs = (int*)aligned_alloc(/*alignement*/64, /*size*/8*sizeof(int));
+  for (int i = 0; i < 8; ++i) {
+    inputs[i] = 7 - i;
   }
+  auto outputs = (int*)aligned_alloc(/*alignement*/64, /*size*/8*sizeof(int));
 
-  std::cout << "Intrinsic test\n";
-  // TIME(sort_ints_intrinsics(__m256i packed_input)); //TODO
+  // std::cout << "Intrinsic test\n";
+  sort_ints_intrinsics(inputs, outputs);
+  for (int i = 0; i < 8; ++i) {
+    std::cout << outputs[i] << ", ";
+  }
+  std::cout << "\n";
 
   std::cout << "ASM test\n";
-  int inputs[8] = {7,6,5,4,3,2,1,0};
-  sort_ints_asm(inputs);
+  // sort_ints_asm(inputs);
   // TIME(sort_ints_asm(inputs), 10);
   return 0;
 }
