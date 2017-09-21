@@ -32,19 +32,20 @@ void print_ivec(__m256i vec, std::string msg) {
 // TIMING
 ////////////////////////////////////////////////
 
-constexpr int WARMUP = 10;
-constexpr int REPEATS = 50;
+constexpr int WARMUP = 10000;
+constexpr int REPEATS = 50000000;
 typedef std::function<void(int *, int *, int *)> sort_func_t;
-void time_sort(sort_func_t sort_func, int *inputs, int *permutes, int *outputs) {
+void __attribute__((optimize("O0"))) time_sort(sort_func_t sort_func, int *inputs, int *permutes, int *outputs) {
     int total_count = 0;
+    auto start = std::chrono::system_clock::now();
     for (int i = -1 * WARMUP; i < REPEATS; ++i) {
-      do_cache_flush();
-      auto start = std::chrono::system_clock::now();
+      // do_cache_flus h();
+      // std::cout << "itr\n";
       sort_func(inputs, permutes, outputs);
-      auto end = std::chrono::system_clock::now();
-      if (i >= 0)
-        total_count += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
     }
+      auto end = std::chrono::system_clock::now();
+      // if (i >= 0)
+        total_count += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
     std::cout << "Avg Time taken = "
               << total_count / REPEATS
               << " nanoseconds with "

@@ -1,8 +1,8 @@
 TARGET = sort
 LIBS = -lm
 CC = g++
-CFLAGS = -g -Wall -O0 -std=c++11 -march=native -masm=intel
-LFLAGS = -Wall -O0 -std=c++11 -march=native -masm=intel
+CFLAGS = -g -ggdb -Wall -Ofast -flto -std=c++11 -march=native -masm=intel
+LFLAGS = -g -ggdb -Wall -Ofast  -flto -std=c++11 -march=native -masm=intel
 
 .PHONY: default all clean
 

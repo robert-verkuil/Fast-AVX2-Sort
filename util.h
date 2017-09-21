@@ -33,8 +33,8 @@ void print_ivec(__m256i vec, std::string msg);
 class Timer {
 public:
     typedef std::chrono::time_point<std::chrono::system_clock> time_pt_t;
-    void start() { start_ = std::chrono::system_clock::now(); }
-    void stop() { end_ = std::chrono::system_clock::now(); }
+    inline void start() { start_ = std::chrono::system_clock::now(); }
+    inline void stop() { end_ = std::chrono::system_clock::now(); }
     int get_ns() { return std::chrono::duration_cast<std::chrono::nanoseconds>(end_ - start_).count();}
     void print() {
        int ns = get_ns();

@@ -15,8 +15,8 @@
 #include "util.h"
 
 // Cache flushing
-constexpr bool FLUSH_CACHE = true;
-constexpr int CACHE_SIZE = 16 * 1024 * 1024; // 64MB
+constexpr bool FLUSH_CACHE = false;
+constexpr int CACHE_SIZE = 64 * 1024 * 1024; // 64MB
 std::vector<int> flusher(1);
 void do_cache_flush() {
   if (flusher.size() == 1 && FLUSH_CACHE) {
@@ -71,38 +71,38 @@ void sort_ints_asm(const int *input_array, int *permute_array, int *output_array
                                             // ymm4 = vpcmp result
                                             // ymm5 = output
 
-    // ".rob1:\t\n"
+    ".rob1:\t\n"
     "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
     "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
     "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
 
-    "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
-    "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
-    "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
+    // "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
+    // "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
+    // "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
+    //
+    // "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
+    // "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
+    // "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
+    //
+    // "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
+    // "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
+    // "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
+    //
+    // "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
+    // "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
+    // "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
+    //
+    // "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
+    // "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
+    // "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
+    //
+    // "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
+    // "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
+    // "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
 
-    "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
-    "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
-    "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
 
-    "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
-    "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
-    "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
-
-    "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
-    "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
-    "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
-
-    "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
-    "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
-    "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
-
-    "vpermd ymm1, ymm2, ymm1\t\n"           // permute shifted_input, inplace
-    "vpcmpgtd ymm4, ymm0, ymm1\t\n"         // Compare orig_input and shift_input, store in ymm4
-    "vpsubd ymm3, ymm3, ymm4\t\n"           // Inc accumulate if cmp set bits
-
-
-    // "dec r12\t\n"                          // Loop 7 times
-    // "jnz .rob1\t\n"
+    "dec r12\t\n"                          // Loop 7 times
+    "jnz .rob1\t\n"
 
     "vpermd  ymm5, ymm0, ymm3\t\n"          // Final permute to sort values
 
@@ -162,6 +162,12 @@ int main(int argc, char *argv[]) {
 
   // Make Timer
   Timer timer;
+
+  // Time a cache flush
+  timer.start();
+  do_cache_flush();
+  timer.stop();
+  timer.print();
 
   // Test Intrinics
   std::cout << "Intrinsic test\n";
